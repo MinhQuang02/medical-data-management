@@ -18,6 +18,7 @@ public partial class AdminDashboard : Form
         string scriptsPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.StartupPath, @"..\..\..\..\scripts-database"));
         
         string seedResult = DatabaseSeeder.InitializeDatabase(scriptsPath);
-        MessageBox.Show(seedResult, "Kết quả khởi tạo/seed CSDL Oracle", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        string debugResult = DebugDatabase.CheckHSBA_DVColumns();
+        MessageBox.Show(seedResult + "\n\n" + debugResult, "Kết quả khởi tạo/seed CSDL Oracle", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 }

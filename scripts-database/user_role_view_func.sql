@@ -4,7 +4,7 @@
 begin
     for r in (select MABN from BENHNHAN) loop
         begin
-            execute immediate 'drop user ' || r.MABN || 'cascade';
+            execute immediate 'drop user ' || r.MABN || ' cascade';
         exception when others then null;
         end;
     end loop;
@@ -145,7 +145,7 @@ grant select, update (SONHA, TENDUONG, QUANHUYEN, TINHTP, TIENSUBENH, TIENSUBENH
 --Cho 'Điều phối viên'
 grant select, insert, update on BENHNHAN to DieuPhoiVien;
 grant insert on HSBA to DieuPhoiVien;
-grant update (MAKHOA, MABS, MAKTV) on HSBA to DieuPhoiVien;
+grant update (MAKHOA, MABS) on HSBA to DieuPhoiVien;
 grant update (MAKTV) on HSBA_DV to DieuPhoiVien;
 
 --(BỔ SUNG) Quyền xem để điều phối

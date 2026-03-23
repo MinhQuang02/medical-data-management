@@ -231,9 +231,9 @@ BEGIN
 END;
 /
 
--- INSERT 100000 BENH NHAN
+-- INSERT 100 BENH NHAN (Giảm số lượng để tránh timeout khi tạo User thực tế trên CSDL)
 BEGIN
-    FOR i IN 1..100000 LOOP
+    FOR i IN 1..100 LOOP
         MERGE INTO BENHNHAN t
         USING (
             SELECT 
@@ -262,9 +262,9 @@ BEGIN
 END;
 /
 
--- INSERT 500 HSBA
+-- INSERT 100 HSBA
 BEGIN
-    FOR i IN 1..500 LOOP
+    FOR i IN 1..100 LOOP
         MERGE INTO HSBA t
         USING (
             SELECT 
@@ -289,9 +289,9 @@ BEGIN
 END;
 /
 
--- INSERT 500 HSBA_DV
+-- INSERT 100 HSBA_DV
 BEGIN
-    FOR i IN 1..500 LOOP
+    FOR i IN 1..100 LOOP
         MERGE INTO HSBA_DV t
         USING (
             SELECT 
@@ -315,9 +315,9 @@ BEGIN
 END;
 /
 
--- INSERT 500 DONTHUOC
+-- INSERT 100 DONTHUOC
 BEGIN
-    FOR i IN 1..500 LOOP
+    FOR i IN 1..100 LOOP
         MERGE INTO DONTHUOC t
         USING (
             SELECT 

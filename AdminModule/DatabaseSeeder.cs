@@ -43,9 +43,13 @@ public class DatabaseSeeder
                     "GRANT AUDIT ANY TO QLBENHVIEN"
                 };
 
-                foreach (var cmd in initCmds)
+                foreach (var cmdText in initCmds)
                 {
-                    ExecuteNonQuery(conn, cmd);
+                    try {
+                        ExecuteNonQuery(conn, cmdText);
+                    } catch (Exception ex) {
+                        return $"[Lỗi lệnh hệ thống: {cmdText}]\n{ex.Message}";
+                    }
                 }
 
                 // 4. Chuyển Session sang Schema QLBENHVIEN để các bảng tạo ra nằm đúng schema
@@ -55,7 +59,11 @@ public class DatabaseSeeder
                 string tableScriptPath = Path.Combine(scriptsFolderPath, "table_storedproc.sql");
                 if (File.Exists(tableScriptPath))
                 {
-                    RunSqlScript(conn, tableScriptPath);
+                    try {
+                        RunSqlScript(conn, tableScriptPath);
+                    } catch (Exception ex) {
+                        return $"[Lỗi trong file table_storedproc.sql]\n{ex.Message}";
+                    }
                 }
                 else
                 {
@@ -66,7 +74,11 @@ public class DatabaseSeeder
                 string roleScriptPath = Path.Combine(scriptsFolderPath, "user_role_view_func.sql");
                 if (File.Exists(roleScriptPath))
                 {
-                    RunSqlScript(conn, roleScriptPath);
+                    try {
+                        RunSqlScript(conn, roleScriptPath);
+                    } catch (Exception ex) {
+                        return $"[Lỗi trong file user_role_view_func.sql]\n{ex.Message}";
+                    }
                 }
                 else
                 {
@@ -86,7 +98,11 @@ public class DatabaseSeeder
     {
         using (OracleCommand cmd = new OracleCommand(sql, conn))
         {
-            cmd.ExecuteNonQuery();
+            try {
+                cmd.ExecuteNonQuery();
+            } catch (Exception ex) {
+                throw new Exception($"[SQL Error: {sql}] - {ex.Message}", ex);
+            }
         }
     }
 
@@ -94,7 +110,11 @@ public class DatabaseSeeder
     {
         using (OracleCommand cmd = new OracleCommand(sql, conn))
         {
-            cmd.ExecuteNonQuery();
+            try {
+                cmd.ExecuteNonQuery();
+            } catch (Exception ex) {
+                throw new Exception($"[PLSQL Error: {sql}] - {ex.Message}", ex);
+            }
         }
     }
 
@@ -113,8 +133,13 @@ public class DatabaseSeeder
 
             // Xử lý báo hiệu của câu lệnh PL/SQL
             if (line.StartsWith("BEGIN", StringComparison.OrdinalIgnoreCase) || 
-                line.StartsWith("CREATE OR REPLACE", StringComparison.OrdinalIgnoreCase) ||
-                line.StartsWith("DECLARE", StringComparison.OrdinalIgnoreCase))
+                line.StartsWith("DECLARE", StringComparison.OrdinalIgnoreCase) ||
+                line.StartsWith("CREATE OR REPLACE PROCEDURE", StringComparison.OrdinalIgnoreCase) ||
+                line.StartsWith("CREATE OR REPLACE FUNCTION", StringComparison.OrdinalIgnoreCase) ||
+                line.StartsWith("CREATE OR REPLACE TRIGGER", StringComparison.OrdinalIgnoreCase) ||
+                line.StartsWith("CREATE OR REPLACE TYPE", StringComparison.OrdinalIgnoreCase) ||
+                line.StartsWith("CREATE PROCEDURE", StringComparison.OrdinalIgnoreCase) ||
+                line.StartsWith("CREATE FUNCTION", StringComparison.OrdinalIgnoreCase))
             {
                 isInPlSql = true;
             }
