@@ -33,7 +33,7 @@ partial class AdminDashboard
     private Button btnCreateRole;
     private Button btnDropRole;
 
-    // Tab 2: Privileges
+    // Tab 2: Privileges (left panel)
     private ComboBox cbGrantee;
     private ComboBox cbPrivilegeType;
     private ComboBox cbObjectType;
@@ -42,6 +42,15 @@ partial class AdminDashboard
     private CheckBox chkWithGrantOption;
     private Button btnGrant;
     private Button btnRevoke;
+
+    // Tab 2: Assign Role to User (right panel)
+    private GroupBox grpAssignRole;
+    private ComboBox cbRoleUser;
+    private ComboBox cbRoleName;
+    private CheckBox chkRoleAdminOpt;
+    private Button btnAssignRole;
+    private Button btnRevokeRole;
+    private DataGridView dgvUserCurrentRoles;
 
     // Tab 3: View Privileges
     private TextBox txtSearchUserRole;
@@ -87,6 +96,14 @@ partial class AdminDashboard
         this.btnGrant = new Button();
         this.btnRevoke = new Button();
         this.chkOnlySystem_Priv = new CheckBox();
+
+        this.grpAssignRole = new GroupBox();
+        this.cbRoleUser = new ComboBox();
+        this.cbRoleName = new ComboBox();
+        this.chkRoleAdminOpt = new CheckBox();
+        this.btnAssignRole = new Button();
+        this.btnRevokeRole = new Button();
+        this.dgvUserCurrentRoles = new DataGridView();
 
         this.txtSearchUserRole = new TextBox();
         this.btnSearchPrivileges = new Button();
@@ -182,38 +199,88 @@ partial class AdminDashboard
         Label lblPTitle = CreateSectionLabel("PHÂN QUYỀN HỆ THỐNG", new Point(25, 25), 15);
         
         int sY = 85; 
-        int labelX = 25; int inputX = 300; int inputW = 350;
+        int labelX = 25; int inputX = 260; int inputW = 320;
 
-        AddLabelToTabWithFont(tabPrivileges, "Tên User hoặc Role hưởng quyền:", new Point(labelX, sY), new Font("Segoe UI Semibold", 10));
-        SetupSearchableCombo(cbGrantee, new Point(inputX, sY - 4), inputW);
+        AddLabelToTabWithFont(tabPrivileges, "Người/Role nhận quyền:", new Point(labelX, sY), new Font("Segoe UI Semibold", 10));
+        SetupComboList(cbGrantee, new Point(inputX, sY - 4), inputW);
 
-        AddLabelToTabWithFont(tabPrivileges, "Lựa chọn Đặc quyền (Privilege):", new Point(labelX, sY + 50), new Font("Segoe UI Semibold", 10));
-        SetupSearchableCombo(cbPrivilegeType, new Point(inputX, sY + 46), inputW);
+        AddLabelToTabWithFont(tabPrivileges, "Loại đặc quyền:", new Point(labelX, sY + 50), new Font("Segoe UI Semibold", 10));
+        SetupComboList(cbPrivilegeType, new Point(inputX, sY + 46), inputW);
 
-        AddLabelToTabWithFont(tabPrivileges, "Đối tượng CSDL ứng dụng:", new Point(labelX, sY + 100), new Font("Segoe UI Semibold", 10));
-        SetupSearchableCombo(cbObjectType, new Point(inputX, sY + 96), 120);
-        SetupSearchableCombo(cbObjectName, new Point(inputX + 130, sY + 96), 220);
+        AddLabelToTabWithFont(tabPrivileges, "Loại đối tượng:", new Point(labelX, sY + 100), new Font("Segoe UI Semibold", 10));
+        SetupComboList(cbObjectType, new Point(inputX, sY + 96), 110);
+        // cbObjectName MUST be DropDownList to reliably get SelectedItem (fixes ORA-00969)
+        this.cbObjectName.Location = new Point(inputX + 120, sY + 96);
+        this.cbObjectName.Size = new Size(200, 30);
+        this.cbObjectName.DropDownStyle = ComboBoxStyle.DropDownList;
 
-        this.chkOnlySystem_Priv.Text = "Ẩn các bảng mặc định của Oracle Engine";
+        this.chkOnlySystem_Priv.Text = "Ẩn đối tượng hệ thống Oracle";
         this.chkOnlySystem_Priv.Checked = true;
         this.chkOnlySystem_Priv.Location = new Point(inputX, sY + 130);
         this.chkOnlySystem_Priv.AutoSize = true;
 
-        AddLabelToTabWithFont(tabPrivileges, "Cột áp dụng (Update):", new Point(labelX, sY + 170), new Font("Segoe UI Semibold", 10));
-        this.clbColumns.Location = new Point(inputX, sY + 170);
-        this.clbColumns.Size = new Size(inputW, 140);
+        AddLabelToTabWithFont(tabPrivileges, "Cột áp dụng (chỉ UPDATE):", new Point(labelX, sY + 165), new Font("Segoe UI Semibold", 10));
+        this.clbColumns.Location = new Point(inputX, sY + 165);
+        this.clbColumns.Size = new Size(inputW, 135);
         this.clbColumns.BorderStyle = BorderStyle.FixedSingle;
 
-        this.chkWithGrantOption.Text = "Cho phép cấp tiếp (WITH GRANT OPTION)";
-        this.chkWithGrantOption.Location = new Point(inputX, sY + 325);
+        this.chkWithGrantOption.Text = "Cho phép cấp tiếp (WITH GRANT/ADMIN OPTION)";
+        this.chkWithGrantOption.Location = new Point(inputX, sY + 315);
         this.chkWithGrantOption.AutoSize = true;
 
-        StyleActionButton(btnGrant, "CẤP QUYỀN", new Point(inputX, sY + 375), Color.FromArgb(16, 124, 16));
-        btnGrant.Size = new Size(160, 45);
-        StyleActionButton(btnRevoke, "THU HỒI", new Point(inputX + 190, sY + 375), Color.FromArgb(209, 52, 56));
-        btnRevoke.Size = new Size(160, 45);
+        StyleActionButton(btnGrant, "CẤP QUYỀN", new Point(inputX, sY + 360), Color.FromArgb(16, 124, 16));
+        btnGrant.Size = new Size(150, 45);
+        StyleActionButton(btnRevoke, "THU HỒI", new Point(inputX + 170, sY + 360), Color.FromArgb(209, 52, 56));
+        btnRevoke.Size = new Size(150, 45);
 
-        this.tabPrivileges.Controls.AddRange(new Control[] { lblPTitle, cbGrantee, cbPrivilegeType, cbObjectType, cbObjectName, clbColumns, chkWithGrantOption, btnGrant, btnRevoke, chkOnlySystem_Priv });
+        // --- TAB 2 RIGHT PANEL: Assign Role to User ---
+        this.grpAssignRole.Text = "GÁN ROLE CHO USER";
+        this.grpAssignRole.Font = new Font("Segoe UI Semibold", 10);
+        this.grpAssignRole.Location = new Point(620, 20);
+        this.grpAssignRole.Size = new Size(320, 500);
+        this.grpAssignRole.BackColor = Color.White;
+        this.grpAssignRole.ForeColor = Color.FromArgb(28, 35, 49);
+        this.grpAssignRole.FlatStyle = FlatStyle.Flat;
+
+        int gY = 35;
+        Label lblGUser = new Label() { Text = "Chọn User:", Location = new Point(15, gY), AutoSize = true, Font = new Font("Segoe UI", 9) };
+        SetupComboList(cbRoleUser, new Point(15, gY + 22), 285);
+
+        Label lblGRole = new Label() { Text = "Chọn Role gán vào:", Location = new Point(15, gY + 70), AutoSize = true, Font = new Font("Segoe UI", 9) };
+        SetupComboList(cbRoleName, new Point(15, gY + 92), 285);
+
+        this.chkRoleAdminOpt.Text = "WITH ADMIN OPTION";
+        this.chkRoleAdminOpt.Location = new Point(15, gY + 140);
+        this.chkRoleAdminOpt.AutoSize = true;
+        this.chkRoleAdminOpt.Font = new Font("Segoe UI", 9);
+
+        StyleActionButton(btnAssignRole, "GÁN ROLE", new Point(15, gY + 175), Color.FromArgb(0, 120, 215));
+        btnAssignRole.Size = new Size(130, 40);
+        StyleActionButton(btnRevokeRole, "GỠ ROLE", new Point(155, gY + 175), Color.FromArgb(209, 52, 56));
+        btnRevokeRole.Size = new Size(130, 40);
+
+        Label lblCurRoles = new Label() { Text = "Role hiện tại của User:", Location = new Point(15, gY + 228), AutoSize = true, Font = new Font("Segoe UI Semibold", 9) };
+        this.dgvUserCurrentRoles.Location = new Point(15, gY + 252);
+        this.dgvUserCurrentRoles.Size = new Size(285, 195);
+        this.dgvUserCurrentRoles.ReadOnly = true;
+        this.dgvUserCurrentRoles.AllowUserToAddRows = false;
+        this.dgvUserCurrentRoles.RowHeadersVisible = false;
+        this.dgvUserCurrentRoles.BackgroundColor = Color.White;
+        this.dgvUserCurrentRoles.BorderStyle = BorderStyle.None;
+        this.dgvUserCurrentRoles.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        this.dgvUserCurrentRoles.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        this.dgvUserCurrentRoles.MultiSelect = false;
+        this.dgvUserCurrentRoles.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 120, 215);
+        this.dgvUserCurrentRoles.DefaultCellStyle.SelectionForeColor = Color.White;
+        this.dgvUserCurrentRoles.EnableHeadersVisualStyles = false;
+        this.dgvUserCurrentRoles.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(244, 246, 249);
+        this.dgvUserCurrentRoles.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI Bold", 9);
+        this.dgvUserCurrentRoles.GridColor = Color.FromArgb(238, 241, 245);
+        this.dgvUserCurrentRoles.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+
+        this.grpAssignRole.Controls.AddRange(new Control[] { lblGUser, cbRoleUser, lblGRole, cbRoleName, chkRoleAdminOpt, btnAssignRole, btnRevokeRole, lblCurRoles, dgvUserCurrentRoles });
+
+        this.tabPrivileges.Controls.AddRange(new Control[] { lblPTitle, cbGrantee, cbPrivilegeType, cbObjectType, cbObjectName, clbColumns, chkWithGrantOption, btnGrant, btnRevoke, chkOnlySystem_Priv, grpAssignRole });
 
         // --- TAB 3: VIEW PRIVILEGES ---
         this.tabViewPrivileges.BackColor = Color.White;
@@ -277,6 +344,14 @@ partial class AdminDashboard
     private void AddLabelToTabWithFont(TabPage tab, string text, Point loc, Font f)
     {
         tab.Controls.Add(new Label() { Text = text, Location = loc, AutoSize = true, Font = f });
+    }
+
+    private void SetupComboList(ComboBox cb, Point loc, int width)
+    {
+        cb.Location = loc;
+        cb.Size = new Size(width, 30);
+        cb.DropDownStyle = ComboBoxStyle.DropDownList;
+        cb.FlatStyle = FlatStyle.Flat;
     }
 
     private void SetupSearchableCombo(ComboBox cb, Point loc, int width)
