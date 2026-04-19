@@ -525,6 +525,12 @@ BEGIN
 END;
 /
 
+--REVOKE ROLE CHO TÀI KHOẢN CHÍNH
+REVOKE DIEUPHOIVIEN FROM QLBENHVIEN;
+REVOKE BACSI FROM QLBENHVIEN;
+REVOKE KYTHUATVIEN FROM QLBENHVIEN;
+REVOKE BENHNHAN FROM QLBENHVIEN;
+
 --DÙNG RBAC ĐỂ THIẾT LẬP CHO 'KỸ THUẬT VIÊN' VÀ 'BỆNH NHÂN'
 --THIẾT LẬP CHO 'KỸ THUẬT VIÊN'
 --TẠO VIEW ĐỂ CÓ THỂ THẤY/ UPDATE ĐƯỢC DÒNG CỦA NGƯỜI ĐÓ
@@ -618,8 +624,15 @@ CREATE OR REPLACE FUNCTION NV_VPD (
 )
 RETURN VARCHAR2
 AS
+    v_user varchar2(30);
 BEGIN
-    RETURN 'MANV = ''' || USER || '''';
+    v_user := SYS_CONTEXT('USERENV', 'SESSION_USER');
+    
+    IF v_user LIKE 'DP%' THEN
+    RETURN '(MANV LIKE ''BS%'' OR MANV LIKE ''KTV%'') OR MANV = '''||v_user||'''';
+    ELSIF v_user LIKE 'BS%' OR v_user LIKE 'KTV%' OR v_user LIKE 'BN%' THEN RETURN 'MANV = '''||v_user||'''';
+    ELSE RETURN '1=1';
+    END IF;
 END;
 /
 
@@ -634,7 +647,10 @@ CREATE OR REPLACE FUNCTION BS_VPD (
 RETURN VARCHAR2
 AS
 BEGIN
-    RETURN 'MABS = ''' || USER || '''';
+    IF USER LIKE 'BS%' THEN RETURN 'MABS = '''||USER||'''';
+    ELSIF USER LIKE 'DP%' OR USER LIKE 'KTV%' OR USER LIKE 'BN%' THEN RETURN '1=0';
+    ELSE RETURN '1=1';
+    END IF;
 END;
 /
 
@@ -648,12 +664,36 @@ CREATE OR REPLACE FUNCTION BS_HSBA (
 )
 RETURN VARCHAR2
 AS
+    v_user VARCHAR2(30);
 BEGIN
+    v_user := SYS_CONTEXT('USERENV', 'SESSION_USER');
+    
+    IF v_user LIKE 'BS%' THEN
     RETURN 'MAHSBA IN (
         SELECT MAHSBA
         FROM HSBA
-        WHERE MABS = ''' || USER || '''
+        WHERE MABS = '''||v_user||'''
     )';
+    
+    ELSIF v_user LIKE 'DP%' THEN
+    RETURN '1=1';
+    
+    ELSIF v_user LIKE 'KTV%' THEN 
+    RETURN 'MAHSBA IN (
+        SELECT MAHSBA
+        FROM HSBA_DV
+        WHERE MAKTV LIKE '''||v_user||'''
+    )';
+    
+    ELSIF v_user LIKE 'BN%' THEN
+    RETURN ' MAHSBA IN (
+        SELECT MAHSBA
+        FROM HSBA
+        WHERE MABN = '''||v_user||'''
+    )';
+    
+    ELSE RETURN '1=1';
+    END IF;
 END;
 /
 
@@ -667,12 +707,26 @@ CREATE OR REPLACE FUNCTION BS_HSBENHNHAN (
 )
 RETURN VARCHAR2
 AS
+        v_user varchar2(30);
 BEGIN
-    RETURN 'MABN IN (
+    v_user := SYS_CONTEXT('USERENV', 'SESSION_USER');
+    
+    IF v_user LIKE 'DP%' THEN RETURN '1=1';
+    
+    ELSIF v_user LIKE 'BS%' THEN
+        RETURN 'MABN IN (
         SELECT MABN
         FROM HSBA
-        WHERE MABS = ''' || USER || '''
-    )';
+        WHERE MABS = ''' || v_user || '''
+        )';
+        
+    ELSIF v_user LIKE 'BN%' THEN
+    RETURN 'MABN = '''||v_user||''')';
+    
+    ELSIF v_user LIKE 'KTV%' THEN
+        RETURN '1=0';
+    ELSE RETURN '1=1';
+    END IF;
 END;
 /
 
