@@ -66,7 +66,7 @@ public class DatabaseService
     public List<string> GetCurrentUserRoles()
     {
         List<string> roles = new List<string>();
-        string query = "SELECT ROLE FROM SESSION_ROLES";
+        string query = "SELECT GRANTED_ROLE FROM USER_ROLE_PRIVS";
         DataTable dt = ExecuteQuery(query);
         foreach(DataRow row in dt.Rows)
         {
