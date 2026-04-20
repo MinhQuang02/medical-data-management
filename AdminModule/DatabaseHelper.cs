@@ -1,7 +1,7 @@
 using Oracle.ManagedDataAccess.Client;
 using System.Windows.Forms;
 
-namespace MedicalDataManagement.Common;
+namespace MedicalDataManagement.AdminModule;
 
 /// <summary>
 /// Helper class for Oracle database operations.

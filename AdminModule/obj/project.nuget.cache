@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "sq63ZMcpddM=",
+  "dgSpecHash": "yyGmg+MqFzQ=",
   "success": true,
-  "projectFilePath": "E:\\Node\\medical-data-management\\AdminModule\\AdminApp.csproj",
+  "projectFilePath": "E:\\Node\\medical-management\\AdminModule\\AdminApp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\admin\\.nuget\\packages\\oracle.manageddataaccess.core\\23.26.100\\oracle.manageddataaccess.core.23.26.100.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\system.configuration.configurationmanager\\8.0.0\\system.configuration.configurationmanager.8.0.0.nupkg.sha512",

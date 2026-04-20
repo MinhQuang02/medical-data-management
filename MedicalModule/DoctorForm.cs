@@ -1,4 +1,5 @@
-﻿using Oracle.ManagedDataAccess.Client;
+using Oracle.ManagedDataAccess.Client;
+using System.Data;
 
 namespace MedicalDataManagement.MedicalModule;
 
@@ -6,8 +7,9 @@ public partial class DoctorForm : Form
 {
     private DatabaseService _db;
     private string _username;
-
     public string Schema { get; set; } = "QLBENHVIEN";
+
+    private Label lblStatus = null!;
 
     public DoctorForm(DatabaseService db, string username)
     {
@@ -15,239 +17,177 @@ public partial class DoctorForm : Form
         _db = db;
         _username = username;
 
-        LoadAll();
+        lblStatus = new Label
+        {
+            Text = "⏳ Đang tải dữ liệu...",
+            Dock = DockStyle.Bottom,
+            Height = 24,
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.DimGray
+        };
+        this.Controls.Add(lblStatus);
+
+        // Load data after form is rendered — never block UI thread
+        this.Shown += async (s, e) => await LoadAllAsync();
     }
 
-    //Chuc nang cho tai het cac thong tin
-    private void LoadAll()
+    private async Task LoadAllAsync()
     {
-        LoadNhanVien();
-        LoadHSBA();
-        LoadBenhNhan();
-        LoadDonThuoc();
-        LoadDichVu();
+        lblStatus.Text = "⏳ Đang tải dữ liệu...";
+        // VPD NV_VPD  : BS% sees only their own row in NHANVIEN
+        await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.NHANVIEN"),  dgvNhanVien, "Nhân Viên");
+        // VPD BS_VPD  : BS% sees only HSBA where MABS = USER
+        await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.HSBA"),      dgvHSBA,     "Hồ Sơ Bệnh Án");
+        // VPD BS_HSBENHNHAN: BS% sees only patients in their treated HSBA
+        await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.BENHNHAN"),  dgvBenhNhan, "Bệnh Nhân");
+        // VPD BS_HSBA linked to DONTHUOC via MAHSBA
+        await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.DONTHUOC"),  dgvDonThuoc, "Đơn Thuốc");
+        // NOTE: Doctor has INSERT+DELETE on HSBA_DV but NOT SELECT — no grid load
+        lblStatus.Text = "✅ Tải xong.";
     }
 
-    //Cho nhan vien xem thong tin ca nhan
-    private void LoadNhanVien()
+    private async Task SafeLoadAsync(Func<DataTable> query, DataGridView dgv, string section)
     {
-        dgvNhanVien.DataSource = _db.ExecuteQuery($"SELECT * FROM {Schema}.NHANVIEN");
+        try
+        {
+            DataTable dt = await Task.Run(query);
+            dgv.DataSource = dt;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Lỗi tải [{section}]: {ex.Message.Split('\n')[0]}",
+                "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
     }
 
-    //Cho nhan vien update thong tin chinh minh
-    private void btnUpdateNV_Click(object sender, EventArgs e)
+    // ─── Nhân Viên ────────────────────────────────────────────────
+    private async void btnUpdateNV_Click(object sender, EventArgs e)
     {
         if (dgvNhanVien.CurrentRow == null) return;
-
         var row = dgvNhanVien.CurrentRow;
-
-        _db.ExecuteNonQuery(
-            $@"UPDATE {Schema}.NHANVIEN
-            SET QUEQUAN = :qq,
-            SODT = :sdt
-            WHERE MANV = :id",
-
-        new OracleParameter[]
+        try
         {
-            new OracleParameter ("qq", row.Cells["QUEQUAN"].Value),
-            new OracleParameter ("sdt", row.Cells["SODT"].Value),
-            new OracleParameter("id", row.Cells["MANV"].Value)
-        });
-
-        LoadNhanVien();
-        MessageBox.Show("Update personal info successfully!");
+            await Task.Run(() => _db.ExecuteNonQuery(
+                $"UPDATE {Schema}.NHANVIEN SET QUEQUAN=:qq, SODT=:sdt WHERE MANV=:id",
+                new OracleParameter[] { new("qq",row.Cells["QUEQUAN"].Value), new("sdt",row.Cells["SODT"].Value), new("id",row.Cells["MANV"].Value) }));
+            await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.NHANVIEN"), dgvNhanVien, "Nhân Viên");
+            MessageBox.Show("Cập nhật thông tin cá nhân thành công!");
+        }
+        catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message.Split('\n')[0]); }
     }
 
-    //Cho load du lieu HSBA
-    private void LoadHSBA()
-    {
-        dgvHSBA.DataSource = _db.ExecuteQuery($"SELECT * FROM {Schema}.HSBA");
-    }
-
-    //Cho nut de cap nhat HSBA
-    private void btnUpdateHSBA_Click(object sender, EventArgs e)
+    // ─── HSBA ────────────────────────────────────────────────────
+    private async void btnUpdateHSBA_Click(object sender, EventArgs e)
     {
         if (dgvHSBA.CurrentRow == null) return;
-
         var r = dgvHSBA.CurrentRow;
-
-        _db.ExecuteNonQuery(
-            $@"UPDATE {Schema}.HSBA
-            SET CHANDOAN = :cd,
-            DIEUTRI = :dt,
-            KETLUAN = :kl
-            WHERE MAHSBA = :id",
-        new OracleParameter[]
+        try
         {
-            new OracleParameter("cd", r.Cells["CHANDOAN"].Value),
-            new OracleParameter("dt", r.Cells["DIEUTRI"].Value),
-            new OracleParameter("kl", r.Cells["KETLUAN"].Value),
-            new OracleParameter("id", r.Cells["MAHSBA"].Value)
+            await Task.Run(() => _db.ExecuteNonQuery(
+                $"UPDATE {Schema}.HSBA SET CHANDOAN=:cd, DIEUTRI=:dt, KETLUAN=:kl WHERE MAHSBA=:id",
+                new OracleParameter[] { new("cd",r.Cells["CHANDOAN"].Value), new("dt",r.Cells["DIEUTRI"].Value), new("kl",r.Cells["KETLUAN"].Value), new("id",r.Cells["MAHSBA"].Value) }));
+            await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.HSBA"), dgvHSBA, "Hồ Sơ Bệnh Án");
+            MessageBox.Show("Cập nhật HSBA thành công! (Oracle Audit đã ghi vết)");
         }
-        );
-
-        LoadHSBA();
-        MessageBox.Show("Update medical record successfully!");
+        catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message.Split('\n')[0]); }
     }
 
-    //Cho phan load benh nhan
-    private void LoadBenhNhan()
-    {
-        dgvBenhNhan.DataSource = _db.ExecuteQuery($"SELECT * FROM {Schema}.BENHNHAN");
-    }
-
-    //Cho nut cap nhat benh nhan
-    private void btnUpdateBN_Click(object sender, EventArgs e)
+    // ─── Bệnh Nhân ───────────────────────────────────────────────
+    private async void btnUpdateBN_Click(object sender, EventArgs e)
     {
         if (dgvBenhNhan.CurrentRow == null) return;
-
         var r = dgvBenhNhan.CurrentRow;
-
-        _db.ExecuteNonQuery(
-            $@"UPDATE {Schema}.BENHNHAN
-            SET TIENSUBENH = :ts,
-            TIENSUBENHGD = :gd,
-            DIUNGTHUOC = :du
-            WHERE MABN = :id",
-        new OracleParameter[]
+        try
         {
-            new OracleParameter("ts", r.Cells["TIENSUBENH"].Value),
-            new OracleParameter("gd", r.Cells["TIENSUBENHGD"].Value),
-            new OracleParameter("du", r.Cells["DIUNGTHUOC"].Value),
-            new OracleParameter("id", r.Cells["MABN"].Value)
-        });
-
-        LoadBenhNhan();
-        MessageBox.Show("Update patient successfully!");
+            await Task.Run(() => _db.ExecuteNonQuery(
+                $"UPDATE {Schema}.BENHNHAN SET TIENSUBENH=:ts, TIENSUBENHGD=:gd, DIUNGTHUOC=:du WHERE MABN=:id",
+                new OracleParameter[] { new("ts",r.Cells["TIENSUBENH"].Value), new("gd",r.Cells["TIENSUBENHGD"].Value), new("du",r.Cells["DIUNGTHUOC"].Value), new("id",r.Cells["MABN"].Value) }));
+            await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.BENHNHAN"), dgvBenhNhan, "Bệnh Nhân");
+            MessageBox.Show("Cập nhật bệnh nhân thành công!");
+        }
+        catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message.Split('\n')[0]); }
     }
 
-    //Cho load don thuoc
-    private void LoadDonThuoc()
-    {
-        dgvDonThuoc.DataSource = _db.ExecuteQuery($"SELECT * FROM {Schema}.DONTHUOC");
-    }
-
-    //Cho viec them don thuoc
-    private void btnAddDT_Click(object sender, EventArgs e)
+    // ─── Đơn Thuốc ───────────────────────────────────────────────
+    private async void btnAddDT_Click(object sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(txtMaHSBA.Text)) return;
-
-        _db.ExecuteNonQuery(
-            $@"INSERT INTO {Schema}.DONTHUOC
-            VALUES (:ma, SYSDATE, :ten, :lieu)",
-        new OracleParameter[]
+        try
         {
-            new OracleParameter("ma", txtMaHSBA.Text),
-            new OracleParameter("ten", txtTenThuoc.Text),
-            new OracleParameter("lieu", txtLieuDung.Text)
-        });
-
-        LoadDonThuoc();
+            await Task.Run(() => _db.ExecuteNonQuery(
+                $"INSERT INTO {Schema}.DONTHUOC VALUES (:ma, SYSDATE, :ten, :lieu)",
+                new OracleParameter[] { new("ma",txtMaHSBA.Text), new("ten",txtTenThuoc.Text), new("lieu",txtLieuDung.Text) }));
+            await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.DONTHUOC"), dgvDonThuoc, "Đơn Thuốc");
+            MessageBox.Show("Thêm đơn thuốc thành công!");
+        }
+        catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message.Split('\n')[0]); }
     }
 
-    //Cho cap nhat don thuoc
-    private void btnUpdateDT_Click(Object sender, EventArgs e)
+    private async void btnUpdateDT_Click(object sender, EventArgs e)
     {
         if (dgvDonThuoc.CurrentRow == null) return;
-
         var r = dgvDonThuoc.CurrentRow;
-
-        _db.ExecuteNonQuery(
-            $@"UPDATE {Schema}.DONTHUOC
-            SET TENTHUOC = :tt, LIEUDUNG = :lieu
-            WHERE MAHSBA = :ma AND NGAYDT = :ng AND TENTHUOC = :old",
-
-        new OracleParameter[]
+        try
         {
-            new OracleParameter("tt", txtTenThuoc.Text),
-            new OracleParameter("lieu", txtLieuDung.Text),
-            new OracleParameter("ma", r.Cells["MAHSBA"].Value),
-            new OracleParameter("ng", r.Cells["NGAYDT"].Value),
-            new OracleParameter("old", r.Cells["TENTHUOC"].Value)
-        });
-
-        LoadDonThuoc();
-
-        MessageBox.Show("Update prescription successfully!");
+            await Task.Run(() => _db.ExecuteNonQuery(
+                $"UPDATE {Schema}.DONTHUOC SET TENTHUOC=:tt, LIEUDUNG=:lieu WHERE MAHSBA=:ma AND NGAYDT=:ng AND TENTHUOC=:old",
+                new OracleParameter[] { new("tt",txtTenThuoc.Text), new("lieu",txtLieuDung.Text), new("ma",r.Cells["MAHSBA"].Value), new("ng",r.Cells["NGAYDT"].Value), new("old",r.Cells["TENTHUOC"].Value) }));
+            await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.DONTHUOC"), dgvDonThuoc, "Đơn Thuốc");
+            MessageBox.Show("Cập nhật đơn thuốc thành công! (Oracle Audit đã ghi vết)");
+        }
+        catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message.Split('\n')[0]); }
     }
 
-    //Tranh cap nhat don thuoc bi rong
     private void dgvDonThuoc_CellClick(object sender, DataGridViewCellEventArgs e)
     {
-        if (dgvDonThuoc.CurrentRow != null)
-        {
-            var r = dgvDonThuoc.CurrentRow;
-
-            txtMaHSBA.Text = r.Cells["MAHSBA"].Value?.ToString();
-            txtTenThuoc.Text = r.Cells["TENTHUOC"].Value?.ToString();
-            txtLieuDung.Text = r.Cells["LIEUDUNG"].Value?.ToString();
-        }
+        if (dgvDonThuoc.CurrentRow == null) return;
+        var r = dgvDonThuoc.CurrentRow;
+        txtMaHSBA.Text   = r.Cells["MAHSBA"].Value?.ToString();
+        txtTenThuoc.Text = r.Cells["TENTHUOC"].Value?.ToString();
+        txtLieuDung.Text = r.Cells["LIEUDUNG"].Value?.ToString();
     }
 
-    //Cho viec xoa don thuoc
-    private void btnDeleteDT_Click(object sender, EventArgs e)
+    private async void btnDeleteDT_Click(object sender, EventArgs e)
     {
         if (dgvDonThuoc.CurrentRow == null) return;
-
         var r = dgvDonThuoc.CurrentRow;
-
-        _db.ExecuteNonQuery(
-            $@"DELETE FROM {Schema}.DONTHUOC
-            WHERE MAHSBA = :ma AND NGAYDT = :ng",
-        new OracleParameter[]
+        try
         {
-            new OracleParameter("ma", r.Cells["MAHSBA"].Value),
-            new OracleParameter("ng", r.Cells["NGAYDT"].Value),
-        });
-
-        LoadDonThuoc();
+            await Task.Run(() => _db.ExecuteNonQuery(
+                $"DELETE FROM {Schema}.DONTHUOC WHERE MAHSBA=:ma AND NGAYDT=:ng",
+                new OracleParameter[] { new("ma",r.Cells["MAHSBA"].Value), new("ng",r.Cells["NGAYDT"].Value) }));
+            await SafeLoadAsync(() => _db.ExecuteQuery($"SELECT * FROM {Schema}.DONTHUOC"), dgvDonThuoc, "Đơn Thuốc");
+        }
+        catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message.Split('\n')[0]); }
     }
 
-    //Cho load dich vu cua hsba
-    private void LoadDichVu()
+    // ─── HSBA_DV (Doctor: INSERT + DELETE only, no SELECT) ────────
+    private async void btnAddDichVu_Click(object sender, EventArgs e)
     {
-        dgvDichVu.DataSource = _db.ExecuteQuery("SELECT * FROM HSBA_DV");
-    }
-
-    //Cho them dich vu hsba
-    private void btnAddDichVu(object sender, EventArgs e)
-    {
-        if (dgvHSBA.CurrentRow == null) return;
-
+        if (dgvHSBA.CurrentRow == null) { MessageBox.Show("Chọn một hồ sơ bệnh án trước."); return; }
+        if (string.IsNullOrWhiteSpace(txtLoaiDV.Text)) { MessageBox.Show("Nhập loại dịch vụ."); return; }
         var r = dgvHSBA.CurrentRow;
-
-        _db.ExecuteNonQuery(
-            $@"INSERT INTO {Schema}.HSBA_DV VALUES 
-            (:ma, :loai, SYSDATE, :maktv, :kq)",
-
-        new OracleParameter[]
+        try
         {
-            new OracleParameter("ma", r.Cells["MAHSBA"].Value),
-            new OracleParameter("loai", txtLoaiDV.Text),
-            new OracleParameter("maktv", _username),
-            new OracleParameter("kq", txtKetQua.Text)
-        });
-
-        LoadDichVu();
+            await Task.Run(() => _db.ExecuteNonQuery(
+                $"INSERT INTO {Schema}.HSBA_DV VALUES (:ma, :loai, SYSDATE, NULL, NULL)",
+                new OracleParameter[] { new("ma",r.Cells["MAHSBA"].Value), new("loai",txtLoaiDV.Text) }));
+            MessageBox.Show("Đã thêm dịch vụ thành công!");
+        }
+        catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message.Split('\n')[0]); }
     }
 
-    //Cho xoa dich vu hsba
-    private void btnDeleteDV_Click(object sender, EventArgs e)
+    private async void btnDeleteDV_Click(object sender, EventArgs e)
     {
         if (dgvDichVu.CurrentRow == null) return;
-
         var r = dgvDichVu.CurrentRow;
-
-        _db.ExecuteNonQuery(
-            $@"DELETE FROM {Schema}.HSBA_DV
-            WHERE MAHSBA = :ma AND LOAIDV = :loai",
-
-            new OracleParameter[]
-            {
-                new OracleParameter("ma", r.Cells["MAHSBA"].Value),
-                new OracleParameter("loai", r.Cells["LOAIDV"].Value)
-            });
-
-        LoadDichVu();
+        try
+        {
+            await Task.Run(() => _db.ExecuteNonQuery(
+                $"DELETE FROM {Schema}.HSBA_DV WHERE MAHSBA=:ma AND LOAIDV=:loai",
+                new OracleParameter[] { new("ma",r.Cells["MAHSBA"].Value), new("loai",r.Cells["LOAIDV"].Value) }));
+            MessageBox.Show("Đã xoá dịch vụ!");
+        }
+        catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message.Split('\n')[0]); }
     }
 }

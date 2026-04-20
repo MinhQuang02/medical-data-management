@@ -1,5 +1,4 @@
 using System.Data;
-using MedicalDataManagement.Common;
 using Oracle.ManagedDataAccess.Client;
 
 namespace MedicalDataManagement.AdminModule;

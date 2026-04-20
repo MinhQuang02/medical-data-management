@@ -1,6 +1,6 @@
 namespace MedicalDataManagement.MedicalModule;
 
-using MedicalDataManagement.Common;
+
 
 static class Program
 {

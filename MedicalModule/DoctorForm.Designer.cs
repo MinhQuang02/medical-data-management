@@ -1,4 +1,4 @@
-﻿namespace MedicalDataManagement.MedicalModule
+namespace MedicalDataManagement.MedicalModule
 {
     partial class DoctorForm
     {
@@ -106,7 +106,9 @@
             tabNhanVien.BackColor = Color.FromArgb(244, 246, 249);
 
             dgvNhanVien = CreateGrid(25, 25, 900, 350);
+            dgvNhanVien.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
             btnUpdateNV = CreateButton("Cập nhật", 25, 390);
+            btnUpdateNV.Click += btnUpdateNV_Click;
 
             tabNhanVien.Controls.AddRange(new Control[]
             {
@@ -117,7 +119,9 @@
             tabHSBA.BackColor = Color.FromArgb(244, 246, 249);
 
             dgvHSBA = CreateGrid(25, 25, 900, 350);
+            dgvHSBA.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
             btnUpdateHSBA = CreateButton("Cập nhật HSBA", 25, 390);
+            btnUpdateHSBA.Click += btnUpdateHSBA_Click;
 
             tabHSBA.Controls.AddRange(new Control[]
             {
@@ -128,7 +132,9 @@
             tabBenhNhan.BackColor = Color.FromArgb(244, 246, 249);
 
             dgvBenhNhan = CreateGrid(25, 25, 900, 350);
+            dgvBenhNhan.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
             btnUpdateBN = CreateButton("Cập nhật BN", 25, 390);
+            btnUpdateBN.Click += btnUpdateBN_Click;
 
             tabBenhNhan.Controls.AddRange(new Control[]
             {
@@ -139,6 +145,8 @@
             tabDonThuoc.BackColor = Color.FromArgb(244, 246, 249);
 
             dgvDonThuoc = CreateGrid(25, 25, 900, 250);
+            dgvDonThuoc.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            dgvDonThuoc.CellClick += dgvDonThuoc_CellClick;
 
             txtMaHSBA = CreateTextBox(25, 300, 150, "Mã HSBA");
             txtTenThuoc = CreateTextBox(185, 300, 200, "Tên thuốc");
@@ -147,6 +155,10 @@
             btnAddDT = CreateButton("Thêm", 25, 350);
             btnUpdateDT = CreateButton("Sửa", 140, 350);
             btnDeleteDT = CreateButton("Xóa", 255, 350);
+
+            btnAddDT.Click += btnAddDT_Click;
+            btnUpdateDT.Click += btnUpdateDT_Click;
+            btnDeleteDT.Click += btnDeleteDT_Click;
 
             tabDonThuoc.Controls.AddRange(new Control[]
             {
@@ -159,6 +171,7 @@
             tabDichVu.BackColor = Color.FromArgb(244, 246, 249);
 
             dgvDichVu = CreateGrid(25, 25, 900, 250);
+            dgvDichVu.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
 
             txtLoaiDV = CreateTextBox(25, 300, 180, "Loại DV");
             txtMaKTV = CreateTextBox(215, 300, 150, "Mã KTV");
@@ -166,6 +179,9 @@
 
             btnAddDV = CreateButton("Thêm DV", 25, 350);
             btnDeleteDV = CreateButton("Xóa DV", 140, 350);
+
+            btnAddDV.Click += btnAddDichVu_Click;
+            btnDeleteDV.Click += btnDeleteDV_Click;
 
             tabDichVu.Controls.AddRange(new Control[]
             {
@@ -179,11 +195,9 @@
             this.Controls.Add(panelHeader);
             this.Controls.Add(panelSidebar);
 
-            this.FormBorderStyle = FormBorderStyle.None;
-            this.TopLevel = false;
-            this.Dock = DockStyle.Fill;
-
             this.ClientSize = new Size(1200, 700);
+            this.Text = "Doctor Dashboard";
+            this.StartPosition = FormStartPosition.CenterScreen;
 
             ResumeLayout(false);
         }

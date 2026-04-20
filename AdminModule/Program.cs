@@ -1,6 +1,6 @@
 namespace MedicalDataManagement.AdminModule;
 
-using MedicalDataManagement.Common;
+
 
 static class Program
 {

@@ -14,6 +14,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = AdminApp
-build_property.ProjectDir = E:\Node\medical-data-management\AdminModule\
+build_property.ProjectDir = E:\Node\medical-management\AdminModule\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 

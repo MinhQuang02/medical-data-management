@@ -9,7 +9,7 @@ public class DatabaseService
 
     public DatabaseService(string username, string password)
     {
-        _connectionString = $"User Id={username};Password={password};Data Source=localhost:1521/xe;";
+        _connectionString = $"User Id={username};Password={password};Data Source=localhost:1521/xepdb1;Connection Timeout=15;";
     }
 
     private OracleConnection GetConnection()
@@ -70,7 +70,7 @@ public class DatabaseService
         DataTable dt = ExecuteQuery(query);
         foreach(DataRow row in dt.Rows)
         {
-            roles.Add(row["ROLE"].ToString()!.ToUpper());
+            roles.Add(row["GRANTED_ROLE"].ToString()!.ToUpper());
         }
         return roles;
     }

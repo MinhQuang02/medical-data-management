@@ -1,4 +1,4 @@
-﻿namespace MedicalDataManagement.MedicalModule
+namespace MedicalDataManagement.MedicalModule
 {
     partial class CoordinatorForm
     {
@@ -114,6 +114,7 @@
             tabNhanVien.BackColor = Color.FromArgb(244, 246, 249);
 
             dgvNhanVien = CreateGrid(25, 25, 900, 300);
+            dgvNhanVien.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
 
             btnUpdateNV = CreateButton("Cập nhật", 25, 340);
             btnUpdateNV.Click += btnUpdateNV_Click;
@@ -127,6 +128,7 @@
             tabBenhNhan.BackColor = Color.FromArgb(244, 246, 249);
 
             dgvBenhNhan = CreateGrid(25, 25, 900, 250);
+            dgvBenhNhan.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
 
             int y = 300;
 
@@ -158,6 +160,7 @@
             tabHSBA.BackColor = Color.FromArgb(244, 246, 249);
 
             dgvHSBA = CreateGrid(25, 25, 900, 250);
+            dgvHSBA.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
 
             txtMaHSBA = CreateTextBox(25, 300, 150, "Mã HSBA");
             txtMaBS = CreateTextBox(185, 300, 150, "Mã BS");
@@ -180,6 +183,7 @@
             tabDichVu.BackColor = Color.FromArgb(244, 246, 249);
 
             dgvDichVu = CreateGrid(25, 25, 900, 300);
+            dgvDichVu.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
 
             btnUpdateDV = CreateButton("Cập nhật KTV", 25, 340);
             btnUpdateDV.Click += btnUpdateDV_Click;
@@ -195,9 +199,8 @@
             this.Controls.Add(panelSidebar);
 
             this.ClientSize = new Size(1200, 700);
-            this.FormBorderStyle = FormBorderStyle.None; // 👉 QUAN TRỌNG để đè form cha
-            this.TopLevel = false; // 👉 để embed vào form chính
-            this.Dock = DockStyle.Fill;
+            this.Text = "Coordinator Dashboard";
+            this.StartPosition = FormStartPosition.CenterScreen;
 
             this.ResumeLayout(false);
         }

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Node\\medical-data-management\\MedicalModule\\MedicalApp.csproj": {}
+    "E:\\Node\\medical-management\\MedicalModule\\MedicalApp.csproj": {}
   },
   "projects": {
-    "E:\\Node\\medical-data-management\\MedicalModule\\MedicalApp.csproj": {
+    "E:\\Node\\medical-management\\MedicalModule\\MedicalApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Node\\medical-data-management\\MedicalModule\\MedicalApp.csproj",
+        "projectUniqueName": "E:\\Node\\medical-management\\MedicalModule\\MedicalApp.csproj",
         "projectName": "MedicalApp",
-        "projectPath": "E:\\Node\\medical-data-management\\MedicalModule\\MedicalApp.csproj",
+        "projectPath": "E:\\Node\\medical-management\\MedicalModule\\MedicalApp.csproj",
         "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "E:\\Node\\medical-data-management\\MedicalModule\\obj\\",
+        "outputPath": "E:\\Node\\medical-management\\MedicalModule\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -43,6 +43,10 @@
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
           "dependencies": {
+            "DotNetEnv": {
+              "target": "Package",
+              "version": "[3.1.1, )"
+            },
             "Oracle.ManagedDataAccess.Core": {
               "target": "Package",
               "version": "[23.26.100, )"

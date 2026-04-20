@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Node\\medical-data-management\\AdminModule\\AdminApp.csproj": {}
+    "E:\\Node\\medical-management\\AdminModule\\AdminApp.csproj": {}
   },
   "projects": {
-    "E:\\Node\\medical-data-management\\AdminModule\\AdminApp.csproj": {
+    "E:\\Node\\medical-management\\AdminModule\\AdminApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Node\\medical-data-management\\AdminModule\\AdminApp.csproj",
+        "projectUniqueName": "E:\\Node\\medical-management\\AdminModule\\AdminApp.csproj",
         "projectName": "AdminApp",
-        "projectPath": "E:\\Node\\medical-data-management\\AdminModule\\AdminApp.csproj",
+        "projectPath": "E:\\Node\\medical-management\\AdminModule\\AdminApp.csproj",
         "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "E:\\Node\\medical-data-management\\AdminModule\\obj\\",
+        "outputPath": "E:\\Node\\medical-management\\AdminModule\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
